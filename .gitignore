@@ -25,3 +25,4 @@
 /storage
 /.docker2
 ###< symfony/asset-mapper ###
+.idea
