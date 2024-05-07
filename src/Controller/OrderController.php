@@ -17,7 +17,7 @@ class OrderController extends AbstractController
     {
         $this->entityManager = $entityManager;
     }
-    #[Route('/orders/{id}', name: 'app_order_stats')]
+    #[Route('/orders/{id}', name: 'get_order', methods: ['GET'])]
     public function getOrder(int $id): JsonResponse
     {
         $order = $this->entityManager->getRepository(Order::class)->find($id);
@@ -28,7 +28,7 @@ class OrderController extends AbstractController
 
         return new JsonResponse([
             'id' => $order->getId(),
-            'date' => $order->getDate()->format('Y-m-d'),
+            'date' => $order->getOrderDate()->format('Y-m-d'),
             'status' => $order->getStatus(),
             'total' => $order->getTotal()
         ]);
