@@ -26,10 +26,12 @@ class ProductController extends AbstractController
         $url = "https://tile.expert/fr/tile/{$factory}/{$collection}/a/{$article}";
         $response = $this->httpClient->request('GET', $url);
         $crawler = new Crawler($response->getContent());
-        $price = $crawler->filter('.price-tag')->text(); // Припустимо, що ціна знаходиться в елементі з класом 'price-tag'
+        $price = $crawler->filter('.price-per-measure-container')->text();
+
+        $cleanPrice = preg_replace('/[\s\x{20AC}\/m\x{00B2}]+/u', '', $price);
 
         return new JsonResponse([
-            'price' => $price,
+            'price' => $cleanPrice,
             'factory' => $factory,
             'collection' => $collection,
             'article' => $article
