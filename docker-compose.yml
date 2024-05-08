@@ -18,16 +18,16 @@ services:
             - php-fpm
             - mysql
     mysql:
-        image: mysql:5.7
+        image: mysql:8
         volumes:
-            - ./storage/docker/mysql:/var/lib/mysql
+            - mysql:/var/lib/mysql
         environment:
             - "MYSQL_ROOT_PASSWORD=secret"
             - "MYSQL_USER=app"
             - "MYSQL_PASSWORD=secret"
             - "MYSQL_DATABASE=app"
         ports:
-            - "33061:3306"
+            - "3306:3306"
 
     php-fpm:
         build:
@@ -48,3 +48,19 @@ services:
             PHP_IDE_CONFIG: "serverName=localhost"
             XDEBUG_CLIENT_HOST: "host.docker.internal"  # Поправлений на правильний ключ
             XDEBUG_CLIENT_PORT: "9003"
+
+    ### Manticore Search ###########################################
+    manticore:
+        build:
+            context: ./docker2/manticore
+        volumes:
+            - ./docker2/manticore/config:/etc/manticoresearch
+            - ./var/data/manticore/data:/var/lib/manticore/data
+            - ./var/data/manticore/log:/var/log/manticore
+        ports:
+            - "9312:9312"
+            - "9306:9306"
+            - "9308:9308"
+volumes:
+    mysql:
+        driver: local

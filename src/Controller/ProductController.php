@@ -29,7 +29,6 @@ class ProductController extends AbstractController
         $price = $crawler->filter('.price-per-measure-container')->text();
 
         $cleanPrice = preg_replace('/[\s\x{20AC}\/m\x{00B2}]+/u', '', $price);
-
         return new JsonResponse([
             'price' => $cleanPrice,
             'factory' => $factory,
