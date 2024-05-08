@@ -4,15 +4,29 @@ namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
+use App\Service\OrderService;
+use Zend\Soap\AutoDiscover;
 
 class SoapController extends AbstractController
 {
-    #[Route('/soap', name: 'app_soap')]
-    public function index(): Response
+    private OrderService $orderService;
+
+    public function __construct(OrderService $orderService)
     {
-        return $this->render('soap/index.html.twig', [
-            'controller_name' => 'SoapController',
-        ]);
+        $this->orderService = $orderService;
+    }
+
+    #[Route('/soap/wsdl', name: 'soap_wsdl')]
+    public function wsdl()
+    {
+        $autodiscover = new AutoDiscover();
+        $autodiscover->setClass(OrderService::class)
+            ->setUri($this->generateUrl('soap_server', [], true));
+        $wsdl = $autodiscover->generate();
+
+        $response = new Response($wsdl->toXml());
+        $response->headers->set('Content-Type', 'application/wsdl+xml');
+        return $response;
     }
 }

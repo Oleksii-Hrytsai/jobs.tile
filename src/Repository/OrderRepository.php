@@ -16,28 +16,21 @@ class OrderRepository extends ServiceEntityRepository
         parent::__construct($registry, Order::class);
     }
 
-    //    /**
-    //     * @return Order[] Returns an array of Order objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('o')
-    //            ->andWhere('o.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('o.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function findOrdersStats($groupBy, $page, $limit)
+    {
+        $groupByMap = [
+            'year' => 'YEAR(o.orderDate)',
+            'month' => 'MONTH(o.orderDate)',
+            'day' => 'DAY(o.orderDate)'
+        ];
 
-    //    public function findOneBySomeField($value): ?Order
-    //    {
-    //        return $this->createQueryBuilder('o')
-    //            ->andWhere('o.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        $qb = $this->createQueryBuilder('o')
+            ->select("COUNT(o.id) as orderCount, {$groupByMap[$groupBy]} as groupedDate")
+            ->groupBy('groupedDate')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        return $qb->getQuery()->getResult();
+    }
+
 }
