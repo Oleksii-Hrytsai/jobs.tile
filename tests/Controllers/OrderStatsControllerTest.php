@@ -10,10 +10,8 @@ class OrderStatsControllerTest extends WebTestCase
 {
     public function testGetOrderStatistics(): void
     {
-        // Створення клієнта для взаємодії з додатком
         $client = static::createClient();
 
-        // Мок репозиторію
         $orderRepository = $this->createMock(OrderRepository::class);
         $orderRepository->expects($this->once())
             ->method('getOrderStatistics')
@@ -29,18 +27,14 @@ class OrderStatsControllerTest extends WebTestCase
             ->method('countOrders')
             ->willReturn(5);
 
-        // Заміна служби у контейнері тестового клієнта
         $client->getContainer()->set(OrderRepository::class, $orderRepository);
 
-        // Виконання запиту
         $client->request('GET', '/orders/stats?page=1&limit=10&groupBy=month');
 
-        // Перевірка відповіді
         $this->assertResponseStatusCodeSame(Response::HTTP_OK);
         $this->assertJson($client->getResponse()->getContent());
         $responseData = json_decode($client->getResponse()->getContent(), true);
 
-        // Перевірка структури відповіді
         $this->assertArrayHasKey('page', $responseData);
         $this->assertArrayHasKey('limit', $responseData);
         $this->assertArrayHasKey('total_pages', $responseData);
