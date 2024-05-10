@@ -1,4 +1,5 @@
-1) git clone git@github.com:Oleksii-Hrytsai/jobs.tile.git
+1) New database in core - dump.sql
+2) git clone git@github.com:Oleksii-Hrytsai/jobs.tile.git
 2) docker-compose up -d --build
 3) docker-compose exec php-fpm bash
 4) bin/console doctrine:migrations:migrate
