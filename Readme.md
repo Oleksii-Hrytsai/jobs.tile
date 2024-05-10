@@ -3,7 +3,7 @@
 2) docker-compose up -d --build
 3) docker-compose exec php-fpm bash
 4) bin/console doctrine:migrations:migrate
-5) php bin/console doctrine:fixtures:load
+5) bin/console doctrine:fixtures:load
 
 exit container 
 
