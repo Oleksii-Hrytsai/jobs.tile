@@ -2,35 +2,56 @@
 
 namespace App\Repository;
 
-use App\Entity\Order;
+use App\Entity\Orders;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Order>
+ * @extends ServiceEntityRepository<Orders>
  */
 class OrderRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Order::class);
+        parent::__construct($registry, Orders::class);
     }
 
-    public function findOrdersStats($groupBy, $page, $limit)
+    public function getOrderStatistics(int $page, int $limit, string $groupBy): array
     {
-        $groupByMap = [
-            'year' => 'YEAR(o.orderDate)',
-            'month' => 'MONTH(o.orderDate)',
-            'day' => 'DAY(o.orderDate)'
-        ];
+        $offset = ($page - 1) * $limit;
+        $groupByClause = $this->getGroupByClause($groupBy);
 
-        $qb = $this->createQueryBuilder('o')
-            ->select("COUNT(o.id) as orderCount, {$groupByMap[$groupBy]} as groupedDate")
-            ->groupBy('groupedDate')
-            ->setFirstResult(($page - 1) * $limit)
-            ->setMaxResults($limit);
+        $query = $this->getEntityManager()->createQuery(
+            "SELECT $groupByClause AS groupValue, COUNT(o.id) AS count
+         FROM App\Entity\Orders o
+         GROUP BY groupValue
+         ORDER BY groupValue DESC"
+        )
+            ->setMaxResults($limit)
+            ->setFirstResult($offset);
 
-        return $qb->getQuery()->getResult();
+        return $query->getResult();
     }
 
+    public function countOrders(string $groupBy): int
+    {
+        $groupByClause = $this->getGroupByClause($groupBy);
+
+        $query = $this->getEntityManager()->createQuery(
+            "SELECT COUNT(DISTINCT $groupByClause)
+             FROM App\Entity\Orders o"
+        );
+
+        return (int) $query->getSingleScalarResult();
+    }
+
+    private function getGroupByClause(string $groupBy): string
+    {
+        return match ($groupBy) {
+            'year' => 'YEAR(o.createDate)',
+            'month' => 'CONCAT(YEAR(o.createDate), \'-\', MONTH(o.createDate))',
+            'day' => 'CONCAT(YEAR(o.createDate), \'-\', MONTH(o.createDate), \'-\', DAY(o.createDate))',
+            default => 'MONTH(o.createDate)'
+        };
+    }
 }

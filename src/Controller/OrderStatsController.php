@@ -2,50 +2,32 @@
 
 namespace App\Controller;
 
-use App\Entity\Order;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\OrderRepository;
+use Symfony\Component\HttpFoundation\Response;
 
 class OrderStatsController extends AbstractController
 {
-    private EntityManagerInterface $entityManager;
-
-    public function __construct(EntityManagerInterface $entityManager)
+    #[Route('/orders/stats', name: 'order_stats', methods: ['GET'])]
+    public function getOrderStatistics(Request $request, OrderRepository $orderRepository): Response
     {
-        $this->entityManager = $entityManager;
-    }
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = $request->query->getInt('limit', 10);
 
-    #[Route('/orders/stats', name: 'app_order_stats')]
-    public function getOrderStats(Request $request): JsonResponse
-    {
-        $page = (int) $request->query->get('page', 1);
-        $limit = (int) $request->query->get('limit', 10);
-        $groupBy = $request->query->get('groupBy', 'month');
+        $groupBy = $request->query->get('groupBy', 'day');
 
-        $queryBuilder = $this->entityManager->createQueryBuilder()
-            ->select("COUNT(o.id) as orderCount, SUBSTRING(o.orderDate, 1, {$this->getSubstringLength($groupBy)}) as groupedDate")
-            ->from(Order::class, 'o')
-            ->groupBy('groupedDate')
-            ->setFirstResult(($page - 1) * $limit)
-            ->setMaxResults($limit);
+        $statistics = $orderRepository->getOrderStatistics($page, $limit, $groupBy);
+        $total = $orderRepository->countOrders($groupBy);
 
-        $query = $queryBuilder->getQuery();
-        $result = $query->getResult();
+        $totalPages = ceil($total / $limit);
 
-        return new JsonResponse([
-            'data' => $result,
+        return $this->json([
             'page' => $page,
             'limit' => $limit,
-            'totalPages' => ceil(count($result) / $limit)
+            'total_pages' => $totalPages,
+            'data' => $statistics
         ]);
     }
-
-    private function getSubstringLength($groupBy): int
-    {
-        return ['year' => 4, 'month' => 7, 'day' => 10][$groupBy] ?? 7; // Default to month
-    }
 }
-

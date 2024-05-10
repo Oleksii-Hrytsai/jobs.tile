@@ -313,6 +313,14 @@ class Orders
         return $this;
     }
 
+    /**
+     * @return \DateTimeInterface|null
+     */
+    public function getCreateDate(): ?\DateTimeInterface
+    {
+        return $this->createDate;
+    }
+
     public function setUpdateDate(\DateTimeInterface $updateDate): self
     {
         $this->updateDate = $updateDate;
